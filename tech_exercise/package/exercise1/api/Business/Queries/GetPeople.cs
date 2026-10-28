@@ -3,6 +3,7 @@ using MediatR;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
+using Microsoft.EntityFrameworkCore;
 
 namespace StargateAPI.Business.Queries
 {
@@ -22,9 +23,19 @@ namespace StargateAPI.Business.Queries
         {
             var result = new GetPeopleResult();
 
-            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id";
-
-            var people = await _context.Connection.QueryAsync<PersonAstronaut>(query);
+            var people = await _context.People
+            .AsNoTracking()
+            .Include(z => z.AstronautDetail)
+            .Select(z => new PersonAstronaut()
+            {
+                PersonId = z.Id,
+                Name = z.Name,
+                CurrentRank = z.AstronautDetail.CurrentRank,
+                CurrentDutyTitle = z.AstronautDetail.CurrentDutyTitle,
+                CareerStartDate = z.AstronautDetail.CareerStartDate,
+                CareerEndDate = z.AstronautDetail.CareerEndDate
+            })
+            .ToListAsync(cancellationToken);
 
             result.People = people.ToList();
 
