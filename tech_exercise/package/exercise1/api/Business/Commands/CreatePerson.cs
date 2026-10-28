@@ -20,7 +20,7 @@ namespace StargateAPI.Business.Commands
         }
         public Task Process(CreatePerson request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(request.Name)) throw new BadHttpRequestException("Bad Request");
+            if (string.IsNullOrWhiteSpace(request.Name)) throw new BadHttpRequestException("Bad Request");
             
             var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
