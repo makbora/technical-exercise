@@ -26,6 +26,10 @@ namespace StargateAPI.Business.Queries
 
             var result = new GetAstronautDutiesByNameResult();
 
+            var valid = await _context.People.AsNoTracking().AnyAsync(z => z.Name == request.Name, cancellationToken);
+
+            if (!valid) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
+
             var person = await _context.People
             .AsNoTracking()
             .Include(z => z.AstronautDetail)
