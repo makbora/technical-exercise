@@ -30,19 +30,17 @@ namespace StargateAPI.Business.Commands
             _context = context;
         }
 
-        public Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
+        public async Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
         {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
 
             if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
 
             request.Person = person;
 
-            var verifyNoPreviousDuty = _context.AstronautDuties.AsNoTracking().FirstOrDefault(z => z.PersonId == person.Id && z.DutyStartDate >= request.DutyStartDate);
+            var verifyNoPreviousDuty = await _context.AstronautDuties.AsNoTracking().FirstOrDefaultAsync(z => z.PersonId == person.Id && z.DutyStartDate >= request.DutyStartDate, cancellationToken);
 
             if (verifyNoPreviousDuty is not null) throw new BadHttpRequestException("Bad Request: Person with this name already has a duty scheduled for the specified date");
-
-            return Task.CompletedTask;
         }
     }
 
@@ -59,7 +57,7 @@ namespace StargateAPI.Business.Commands
 
             var person = request.Person;
 
-            var astronautDetail = await _context.AstronautDetails.FirstOrDefaultAsync(z => z.PersonId == person.Id);
+            var astronautDetail = await _context.AstronautDetails.FirstOrDefaultAsync(z => z.PersonId == person.Id, cancellationToken);
 
             if (astronautDetail == null)
             {
@@ -73,7 +71,7 @@ namespace StargateAPI.Business.Commands
                     astronautDetail.CareerEndDate = request.DutyStartDate.Date;
                 }
 
-                await _context.AstronautDetails.AddAsync(astronautDetail);
+                _context.AstronautDetails.Add(astronautDetail);
 
             }
             else
@@ -87,7 +85,7 @@ namespace StargateAPI.Business.Commands
                 _context.AstronautDetails.Update(astronautDetail);
             }
 
-            var astronautDuty = await _context.AstronautDuties.FirstOrDefaultAsync(z => z.PersonId == person.Id && z.DutyEndDate == null);
+            var astronautDuty = await _context.AstronautDuties.FirstOrDefaultAsync(z => z.PersonId == person.Id && z.DutyEndDate == null, cancellationToken);
 
             if (astronautDuty != null)
             {
@@ -104,9 +102,9 @@ namespace StargateAPI.Business.Commands
                 DutyEndDate = null
             };
 
-            await _context.AstronautDuties.AddAsync(newAstronautDuty);
+            _context.AstronautDuties.Add(newAstronautDuty);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new CreateAstronautDutyResult()
             {

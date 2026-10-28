@@ -20,21 +20,19 @@ namespace StargateAPI.Business.Commands
         {
             _context = context;
         }
-        public Task Process(UpdatePerson request, CancellationToken cancellationToken)
+        public async Task Process(UpdatePerson request, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(request.Name)||string.IsNullOrWhiteSpace(request.NewName)) throw new BadHttpRequestException("Bad Request: Name and NewName cannot be empty");
 
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
 
             if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
 
-            var newPerson = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.NewName);
+            var newPerson = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.NewName, cancellationToken);
 
             if (newPerson is not null) throw new BadHttpRequestException("Bad Request: Person with this name already exists");
 
             request.Person = person;
-
-            return Task.CompletedTask;
         }
     }
 
@@ -53,7 +51,7 @@ namespace StargateAPI.Business.Commands
 
                 _context.People.Update(request.Person);
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
 
                 return new UpdatePersonResult()
                 {
