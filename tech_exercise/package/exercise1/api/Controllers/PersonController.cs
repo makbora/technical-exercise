@@ -29,6 +29,15 @@ namespace StargateAPI.Controllers
 
                 return this.GetResponse(result);
             }
+            catch (BadHttpRequestException ex)
+            {
+                return this.GetResponse(new BaseResponse()
+                {
+                    Message = ex.Message,
+                    Success = false,
+                    ResponseCode = ex.StatusCode
+                });
+            }
             catch (Exception ex)
             {
                 return this.GetResponse(new BaseResponse()
@@ -51,6 +60,15 @@ namespace StargateAPI.Controllers
                 });
 
                 return this.GetResponse(result);
+            }
+            catch (BadHttpRequestException ex)
+            {
+                return this.GetResponse(new BaseResponse()
+                {
+                    Message = ex.Message,
+                    Success = false,
+                    ResponseCode = ex.StatusCode
+                });
             }
             catch (Exception ex)
             {
@@ -75,6 +93,15 @@ namespace StargateAPI.Controllers
 
                 return this.GetResponse(result);
             }
+            catch (BadHttpRequestException ex)
+            {
+                return this.GetResponse(new BaseResponse()
+                {
+                    Message = ex.Message,
+                    Success = false,
+                    ResponseCode = ex.StatusCode
+                });
+            }
             catch (Exception ex)
             {
                 return this.GetResponse(new BaseResponse()
@@ -98,6 +125,15 @@ namespace StargateAPI.Controllers
                 });
 
                 return this.GetResponse(result);
+            }
+            catch (BadHttpRequestException ex)
+            {
+                return this.GetResponse(new BaseResponse()
+                {
+                    Message = ex.Message,
+                    Success = false,
+                    ResponseCode = ex.StatusCode
+                });
             }
             catch (Exception ex)
             {
