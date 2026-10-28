@@ -20,11 +20,11 @@ namespace StargateAPI.Business.Commands
         }
         public Task Process(CreatePerson request, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(request.Name)) throw new BadHttpRequestException("Bad Request");
+            if (string.IsNullOrWhiteSpace(request.Name)) throw new BadHttpRequestException("Bad Request: Name cannot be empty");
             
             var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-            if (person is not null) throw new BadHttpRequestException("Bad Request");
+            if (person is not null) throw new BadHttpRequestException("Bad Request: Person with this name already exists");
 
             return Task.CompletedTask;
         }

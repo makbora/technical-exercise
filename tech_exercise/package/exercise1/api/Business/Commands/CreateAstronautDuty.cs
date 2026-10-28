@@ -34,13 +34,13 @@ namespace StargateAPI.Business.Commands
         {
             var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-            if (person is null) throw new BadHttpRequestException("Bad Request");
+            if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
 
             request.Person = person;
 
             var verifyNoPreviousDuty = _context.AstronautDuties.AsNoTracking().FirstOrDefault(z => z.PersonId == person.Id && z.DutyStartDate >= request.DutyStartDate);
 
-            if (verifyNoPreviousDuty is not null) throw new BadHttpRequestException("Bad Request");
+            if (verifyNoPreviousDuty is not null) throw new BadHttpRequestException("Bad Request: Person with this name already has a duty scheduled for the specified date");
 
             return Task.CompletedTask;
         }
