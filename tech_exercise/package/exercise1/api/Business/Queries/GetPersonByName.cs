@@ -39,6 +39,8 @@ namespace StargateAPI.Business.Queries
             })
             .FirstOrDefaultAsync(cancellationToken);
 
+            if(person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
+
             result.Person = person;
 
             return result;
