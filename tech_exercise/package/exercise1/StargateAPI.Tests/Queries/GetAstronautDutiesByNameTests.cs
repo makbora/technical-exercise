@@ -14,17 +14,17 @@ public class GetAstronautDutiesByNameTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
-    public async Task ThrowsException_WhenPersonDoesNotExist()
+    public async Task Processor_ThrowsException_WhenPersonDoesNotExist()
     {
         // Arrange
         var query = new GetAstronautDutiesByName
         {
             Name = "Non-existent Person"
         };
-        var handler = new GetAstronautDutiesByNameHandler(_fixture.Context);
+        var processor = new GetAstronautDutiesByNamePreProcessor(_fixture.Context);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BadHttpRequestException>(() => handler.Handle(query, CancellationToken.None));
+        await Assert.ThrowsAsync<BadHttpRequestException>(() => processor.Process(query, CancellationToken.None));
     }
 
     [Fact]
@@ -36,9 +36,11 @@ public class GetAstronautDutiesByNameTests : IClassFixture<TestDbContextFixture>
         {
             Name = existingPerson.Name
         };
+        var processor = new GetAstronautDutiesByNamePreProcessor(_fixture.Context);
         var handler = new GetAstronautDutiesByNameHandler(_fixture.Context);
 
         // Act
+        await processor.Process(query, CancellationToken.None);
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
@@ -48,30 +50,30 @@ public class GetAstronautDutiesByNameTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
-    public async Task ThrowsException_WhenNameIsEmpty()
+    public async Task Processor_ThrowsException_WhenNameIsEmpty()
     {
         // Arrange
         var query = new GetAstronautDutiesByName
         {
             Name = ""
         };
-        var handler = new GetAstronautDutiesByNameHandler(_fixture.Context);
+        var processor = new GetAstronautDutiesByNamePreProcessor(_fixture.Context);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BadHttpRequestException>(() => handler.Handle(query, CancellationToken.None));
+        await Assert.ThrowsAsync<BadHttpRequestException>(() => processor.Process(query, CancellationToken.None));
     }
 
     [Fact]
-    public async Task ThrowsException_WhenNameIsWhitespace()
+    public async Task Processor_ThrowsException_WhenNameIsWhitespace()
     {
         // Arrange
         var query = new GetAstronautDutiesByName
         {
             Name = "   "
         };
-        var handler = new GetAstronautDutiesByNameHandler(_fixture.Context);
+        var processor = new GetAstronautDutiesByNamePreProcessor(_fixture.Context);
 
         // Act & Assert
-        await Assert.ThrowsAsync<BadHttpRequestException>(() => handler.Handle(query, CancellationToken.None));
+        await Assert.ThrowsAsync<BadHttpRequestException>(() => processor.Process(query, CancellationToken.None));
     }
 }

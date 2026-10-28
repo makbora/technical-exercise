@@ -4,12 +4,30 @@ using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
 using Microsoft.EntityFrameworkCore;
+using MediatR.Pipeline;
 
 namespace StargateAPI.Business.Queries
 {
     public class GetAstronautDutiesByName : IRequest<GetAstronautDutiesByNameResult>
     {
         public string Name { get; set; } = string.Empty;
+    }
+
+    public class GetAstronautDutiesByNamePreProcessor : IRequestPreProcessor<GetAstronautDutiesByName>
+    {
+        private readonly StargateContext _context;
+        public GetAstronautDutiesByNamePreProcessor(StargateContext context)
+        {
+            _context = context;
+        }
+        public async Task Process(GetAstronautDutiesByName request, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name)) throw new BadHttpRequestException("Bad Request: Name cannot be empty");
+            
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
+
+            if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
+        }
     }
 
     public class GetAstronautDutiesByNameHandler : IRequestHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
@@ -25,10 +43,6 @@ namespace StargateAPI.Business.Queries
         {
 
             var result = new GetAstronautDutiesByNameResult();
-
-            var valid = await _context.People.AsNoTracking().AnyAsync(z => z.Name == request.Name, cancellationToken);
-
-            if (!valid) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
 
             var person = await _context.People
             .AsNoTracking()
