@@ -86,5 +86,28 @@ namespace StargateAPI.Controllers
             }
 
         }
+        [HttpPut("{name}")]
+        public async Task<IActionResult> UpdatePerson(string name, [FromBody] UpdatePerson command)
+        {
+            try
+            {
+                var result = await _mediator.Send(new UpdatePerson()
+                {
+                    Name = name,
+                    NewName = command.NewName
+                });
+
+                return this.GetResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return this.GetResponse(new BaseResponse()
+                {
+                    Message = ex.Message,
+                    Success = false,
+                    ResponseCode = (int)HttpStatusCode.InternalServerError
+                });
+            }
+        }
     }
 }

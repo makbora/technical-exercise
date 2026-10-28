@@ -16,6 +16,7 @@ builder.Services.AddDbContext<StargateContext>(options =>
 builder.Services.AddMediatR(cfg =>
 {
     cfg.AddRequestPreProcessor<CreatePersonPreProcessor>();
+    cfg.AddRequestPreProcessor<UpdatePersonPreProcessor>();
     cfg.AddRequestPreProcessor<CreateAstronautDutyPreProcessor>();
     cfg.RegisterServicesFromAssemblies(typeof(Program).Assembly);
 });
