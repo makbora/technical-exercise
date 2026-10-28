@@ -17,6 +17,8 @@ namespace StargateAPI.Business.Commands
         public required string DutyTitle { get; set; }
 
         public DateTime DutyStartDate { get; set; }
+
+        public Person Person;
     }
 
     public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstronautDuty>
@@ -34,7 +36,9 @@ namespace StargateAPI.Business.Commands
 
             if (person is null) throw new BadHttpRequestException("Bad Request");
 
-            var verifyNoPreviousDuty = _context.AstronautDuties.FirstOrDefault(z => z.DutyTitle == request.DutyTitle && z.DutyStartDate == request.DutyStartDate);
+            request.Person = person;
+
+            var verifyNoPreviousDuty = _context.AstronautDuties.AsNoTracking().FirstOrDefault(z => z.PersonId == person.Id && z.DutyStartDate >= request.DutyStartDate);
 
             if (verifyNoPreviousDuty is not null) throw new BadHttpRequestException("Bad Request");
 
@@ -53,13 +57,9 @@ namespace StargateAPI.Business.Commands
         public async Task<CreateAstronautDutyResult> Handle(CreateAstronautDuty request, CancellationToken cancellationToken)
         {
 
-            var query = $"SELECT * FROM [Person] WHERE \'{request.Name}\' = Name";
+            var person = request.Person;
 
-            var person = await _context.Connection.QueryFirstOrDefaultAsync<Person>(query);
-
-            query = $"SELECT * FROM [AstronautDetail] WHERE {person.Id} = PersonId";
-
-            var astronautDetail = await _context.Connection.QueryFirstOrDefaultAsync<AstronautDetail>(query);
+            var astronautDetail = await _context.AstronautDetails.FirstOrDefaultAsync(z => z.PersonId == person.Id);
 
             if (astronautDetail == null)
             {
@@ -87,9 +87,7 @@ namespace StargateAPI.Business.Commands
                 _context.AstronautDetails.Update(astronautDetail);
             }
 
-            query = $"SELECT * FROM [AstronautDuty] WHERE {person.Id} = PersonId Order By DutyStartDate Desc";
-
-            var astronautDuty = await _context.Connection.QueryFirstOrDefaultAsync<AstronautDuty>(query);
+            var astronautDuty = await _context.AstronautDuties.FirstOrDefaultAsync(z => z.PersonId == person.Id && z.DutyEndDate == null);
 
             if (astronautDuty != null)
             {
