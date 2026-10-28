@@ -28,6 +28,10 @@ namespace StargateAPI.Business.Commands
 
             if (person is null) throw new BadHttpRequestException("Bad Request");
 
+            var newPerson = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.NewName);
+
+            if (newPerson is not null) throw new BadHttpRequestException("Bad Request");
+
             request.Person = person;
 
             return Task.CompletedTask;
