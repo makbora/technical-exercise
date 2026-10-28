@@ -18,6 +18,8 @@ namespace StargateAPI.Controllers
         }
 
         [HttpGet("")]
+        [ProducesResponseType(typeof(GetPeopleResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetPeople()
         {
             try
@@ -50,6 +52,8 @@ namespace StargateAPI.Controllers
         }
 
         [HttpGet("{name}")]
+        [ProducesResponseType(typeof(GetPersonByNameResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetPersonByName(string name)
         {
             try
@@ -82,6 +86,8 @@ namespace StargateAPI.Controllers
         }
 
         [HttpPost("")]
+        [ProducesResponseType(typeof(CreatePersonResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> CreatePerson([FromBody] string name)
         {
             try
@@ -114,6 +120,8 @@ namespace StargateAPI.Controllers
 
         }
         [HttpPut("{name}")]
+        [ProducesResponseType(typeof(UpdatePersonResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UpdatePerson(string name, [FromBody] UpdatePerson command)
         {
             try

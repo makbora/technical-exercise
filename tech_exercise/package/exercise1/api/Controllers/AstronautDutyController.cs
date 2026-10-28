@@ -17,6 +17,8 @@ namespace StargateAPI.Controllers
         }
 
         [HttpGet("{name}")]
+        [ProducesResponseType(typeof(GetAstronautDutiesByNameResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetAstronautDutiesByName(string name)
         {
             try
@@ -49,6 +51,8 @@ namespace StargateAPI.Controllers
         }
 
         [HttpPost("")]
+        [ProducesResponseType(typeof(CreateAstronautDutyResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BaseResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> CreateAstronautDuty([FromBody] CreateAstronautDuty request)
         {
             try
