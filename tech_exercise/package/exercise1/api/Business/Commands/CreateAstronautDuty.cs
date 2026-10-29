@@ -82,6 +82,11 @@ namespace StargateAPI.Business.Commands
                 {
                     astronautDetail.CareerEndDate = request.DutyStartDate.AddDays(-1).Date;
                 }
+                else
+                {
+                    // A new active duty after a retirement brings the person back; their career is ongoing again.
+                    astronautDetail.CareerEndDate = null;
+                }
                 _context.AstronautDetails.Update(astronautDetail);
             }
 

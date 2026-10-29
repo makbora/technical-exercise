@@ -227,6 +227,42 @@ public class CreateAstronautDutyTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task Handle_ClearsCareerEndDate_WhenRetiredAstronautReturnsToDuty()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Returning Astronaut");
+        _fixture.CreateTestAstronautDetail(existingPerson, "COL", "RETIRED", new DateTime(2010, 1, 1), new DateTime(2020, 11, 30));
+        _fixture.CreateTestAstronautDuty(existingPerson, "COL", "Commander", new DateTime(2010, 1, 1), new DateTime(2020, 11, 30));
+        _fixture.CreateTestAstronautDuty(existingPerson, "COL", "RETIRED", new DateTime(2020, 12, 1));
+
+        var command = new CreateAstronautDuty
+        {
+            Name = existingPerson.Name,
+            Rank = "COL",
+            DutyTitle = "Pilot",
+            DutyStartDate = new DateTime(2025, 1, 1)
+        };
+        var preProcessor = new CreateAstronautDutyPreProcessor(_fixture.Context);
+        var handler = new CreateAstronautDutyHandler(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        var astronautDetail = await _fixture.Context.AstronautDetails.AsNoTracking().SingleAsync(z => z.PersonId == existingPerson.Id);
+        Assert.Equal("Pilot", astronautDetail.CurrentDutyTitle);
+        Assert.Equal(new DateTime(2010, 1, 1), astronautDetail.CareerStartDate);
+        Assert.Null(astronautDetail.CareerEndDate);
+
+        // The retirement stays in the history, closed the day before the return.
+        var retirement = await _fixture.Context.AstronautDuties.AsNoTracking().SingleAsync(z => z.PersonId == existingPerson.Id && z.DutyTitle == "RETIRED");
+        Assert.Equal(new DateTime(2024, 12, 31), retirement.DutyEndDate);
+        var newDuty = await _fixture.Context.AstronautDuties.AsNoTracking().SingleAsync(z => z.Id == result.Id);
+        Assert.Null(newDuty.DutyEndDate);
+    }
+
+    [Fact]
     public async Task Handle_LeavesCareerEndDateEmpty_WhenDutyIsNotRetirement()
     {
         // Arrange
