@@ -20,6 +20,7 @@ public class AstronautDutyControllerTests : IClassFixture<TestDbContextFixture>
         _controller = new AstronautDutyController(_mediatorMock.Object);
     }
 
+    [Fact]
     public async Task GetAstronautDutiesByName_ReturnsOkResult_WhenMediatorReturnsSuccess()
     {
         // Arrange
@@ -38,11 +39,13 @@ public class AstronautDutyControllerTests : IClassFixture<TestDbContextFixture>
         var result = await _controller.GetAstronautDutiesByName(name);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        var okResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         var returnedResponse = Assert.IsType<GetAstronautDutiesByNameResult>(okResult.Value);
         Assert.True(returnedResponse.Success);
     }
 
+    [Fact]
     public async Task CreateAstronautDuty_ReturnsOkResult_WhenMediatorReturnsSuccess()
     {
         // Arrange
@@ -68,11 +71,13 @@ public class AstronautDutyControllerTests : IClassFixture<TestDbContextFixture>
         var result = await _controller.CreateAstronautDuty(request);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
+        var okResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         var returnedResponse = Assert.IsType<CreateAstronautDutyResult>(okResult.Value);
         Assert.True(returnedResponse.Success);
     }
 
+    [Fact]
     public async Task GetAstronautDutiesByName_ReturnsInternalServerError_WhenMediatorThrowsException()
     {
         // Arrange
@@ -89,6 +94,7 @@ public class AstronautDutyControllerTests : IClassFixture<TestDbContextFixture>
         Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
     }
 
+    [Fact]
     public async Task GetAstronautDutiesByName_ReturnsBadRequest_WhenMediatorThrowsBadHttpRequestException()
     {
         // Arrange
@@ -105,6 +111,7 @@ public class AstronautDutyControllerTests : IClassFixture<TestDbContextFixture>
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
     }
 
+    [Fact]
     public async Task CreateAstronautDuty_ReturnsInternalServerError_WhenMediatorThrowsException()
     {
         // Arrange
@@ -127,6 +134,7 @@ public class AstronautDutyControllerTests : IClassFixture<TestDbContextFixture>
         Assert.Equal(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
     }
 
+    [Fact]
     public async Task CreateAstronautDuty_ReturnsBadRequest_WhenMediatorThrowsBadHttpRequestException()
     {
         // Arrange

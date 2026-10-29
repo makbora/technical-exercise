@@ -76,6 +76,10 @@ public class CreateAstronautDutyTests : IClassFixture<TestDbContextFixture>
     {
         // Arrange
         var existingPerson = _fixture.CreateTestPerson("Existing Person");
+        // Another person's duty, so the new duty's Id can't coincide with the person's Id.
+        var otherPerson = _fixture.CreateTestPerson("Other Person");
+        _fixture.CreateTestAstronautDuty(otherPerson, "Major", "Commander", DateTime.UtcNow.AddYears(-1));
+
         var command = new CreateAstronautDuty
         {
             Name = existingPerson.Name,
@@ -91,7 +95,11 @@ public class CreateAstronautDutyTests : IClassFixture<TestDbContextFixture>
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
-        Assert.Equal(existingPerson.Id, result.Id);
+        var createdDuty = await _fixture.Context.AstronautDuties.AsNoTracking().SingleAsync(z => z.PersonId == existingPerson.Id);
+        Assert.Equal(createdDuty.Id, result.Id);
+        Assert.Equal("Captain", createdDuty.Rank);
+        Assert.Equal("Mission Specialist", createdDuty.DutyTitle);
+        Assert.Null(createdDuty.DutyEndDate);
         var updatedAstronautDetail = await _fixture.Context.AstronautDetails.FirstOrDefaultAsync(z => z.PersonId == existingPerson.Id);
         Assert.NotNull(updatedAstronautDetail);
         Assert.Equal("Mission Specialist", updatedAstronautDetail.CurrentDutyTitle);
@@ -160,5 +168,86 @@ public class CreateAstronautDutyTests : IClassFixture<TestDbContextFixture>
         var updatedPreviousDuty = await _fixture.Context.AstronautDuties.FirstOrDefaultAsync(z => z.PersonId == existingPerson.Id && z.DutyEndDate != null);
         Assert.NotNull(updatedPreviousDuty);
         Assert.Equal(command.DutyStartDate.AddDays(-1).Date, updatedPreviousDuty.DutyEndDate.Value.Date);
+    }
+
+    [Fact]
+    public async Task Handle_SetsCareerEndDateToDayBeforeRetirement_WhenAstronautRetires()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Retiring Astronaut");
+        _fixture.CreateTestAstronautDetail(existingPerson, "COL", "Commander", new DateTime(2015, 3, 1));
+        _fixture.CreateTestAstronautDuty(existingPerson, "COL", "Commander", new DateTime(2015, 3, 1));
+
+        var command = new CreateAstronautDuty
+        {
+            Name = existingPerson.Name,
+            Rank = "COL",
+            DutyTitle = "RETIRED",
+            DutyStartDate = new DateTime(2025, 6, 1, 9, 30, 0)
+        };
+        var preProcessor = new CreateAstronautDutyPreProcessor(_fixture.Context);
+        var handler = new CreateAstronautDutyHandler(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        var astronautDetail = await _fixture.Context.AstronautDetails.AsNoTracking().SingleAsync(z => z.PersonId == existingPerson.Id);
+        Assert.Equal("RETIRED", astronautDetail.CurrentDutyTitle);
+        Assert.Equal(new DateTime(2015, 3, 1), astronautDetail.CareerStartDate);
+        Assert.Equal(new DateTime(2025, 5, 31), astronautDetail.CareerEndDate);
+    }
+
+    [Fact]
+    public async Task Handle_SetsCareerEndDateToDayBeforeRetirement_WhenFirstDutyIsRetired()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Retired On Arrival");
+
+        var command = new CreateAstronautDuty
+        {
+            Name = existingPerson.Name,
+            Rank = "MAJ",
+            DutyTitle = "RETIRED",
+            DutyStartDate = new DateTime(2025, 6, 1)
+        };
+        var preProcessor = new CreateAstronautDutyPreProcessor(_fixture.Context);
+        var handler = new CreateAstronautDutyHandler(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        var astronautDetail = await _fixture.Context.AstronautDetails.AsNoTracking().SingleAsync(z => z.PersonId == existingPerson.Id);
+        Assert.Equal("RETIRED", astronautDetail.CurrentDutyTitle);
+        Assert.Equal(new DateTime(2025, 6, 1), astronautDetail.CareerStartDate);
+        Assert.Equal(new DateTime(2025, 5, 31), astronautDetail.CareerEndDate);
+    }
+
+    [Fact]
+    public async Task Handle_LeavesCareerEndDateEmpty_WhenDutyIsNotRetirement()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Active Astronaut");
+
+        var command = new CreateAstronautDuty
+        {
+            Name = existingPerson.Name,
+            Rank = "CPT",
+            DutyTitle = "Pilot",
+            DutyStartDate = new DateTime(2025, 6, 1)
+        };
+        var preProcessor = new CreateAstronautDutyPreProcessor(_fixture.Context);
+        var handler = new CreateAstronautDutyHandler(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        var astronautDetail = await _fixture.Context.AstronautDetails.AsNoTracking().SingleAsync(z => z.PersonId == existingPerson.Id);
+        Assert.Null(astronautDetail.CareerEndDate);
     }
 }

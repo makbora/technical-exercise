@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Coverage settings. Pass this file to dotnet test with -s coverlet.runsettings, alongside
+  the "XPlat Code Coverage" collector.
+  EF Core migrations are generated code and never run in tests (the fixture uses EnsureCreated),
+  so they are left out of the coverage figures.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <ExcludeByFile>**/Migrations/*.cs</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
