@@ -14,6 +14,10 @@
       }
     }
   </div>
+  <div class="actions">
+    <button type="button" class="button" (click)="edit.emit()">Edit</button>
+    <button type="button" class="button primary" (click)="addDuty.emit()">Add duty</button>
+  </div>
 </header>
 
 @if (status() === 'none') {

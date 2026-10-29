@@ -17,6 +17,13 @@ export interface AstronautDuty {
   endDate: string | null;
 }
 
+/** A duty to add to a person. `startDate` is an ISO date (yyyy-mm-dd). */
+export interface NewAstronautDuty {
+  rank: string;
+  title: string;
+  startDate: string;
+}
+
 /** Everything known about one person: their details and their duties, newest first. */
 export interface AstronautProfile {
   person: PersonSummary;

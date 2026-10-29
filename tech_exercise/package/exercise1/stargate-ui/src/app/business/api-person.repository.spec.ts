@@ -3,29 +3,81 @@ import { Observable, firstValueFrom, of, throwError } from 'rxjs';
 import {
   ApiException,
   AstronautDutyClient,
+  CreateAstronautDuty,
   GetAstronautDutiesByNameResult,
   GetPeopleResult,
   PersonClient,
+  UpdatePerson,
 } from '@api/stargate-api';
 import { ApiPersonRepository, toErrorMessage } from './api-person.repository';
 
 describe('ApiPersonRepository', () => {
   let people: Observable<GetPeopleResult>;
   let duties: GetAstronautDutiesByNameResult;
+  let saveResponse: Observable<unknown>;
+  let createdDuties: (CreateAstronautDuty | undefined)[];
+  let updates: [string, UpdatePerson | undefined][];
   let repository: ApiPersonRepository;
 
   beforeEach(() => {
+    saveResponse = of({ success: true });
+    createdDuties = [];
+    updates = [];
+
     TestBed.configureTestingModule({
       providers: [
         ApiPersonRepository,
-        { provide: PersonClient, useValue: { getPeople: () => people } },
+        {
+          provide: PersonClient,
+          useValue: {
+            getPeople: () => people,
+            updatePerson: (name: string, body?: UpdatePerson) => {
+              updates.push([name, body]);
+              return saveResponse;
+            },
+          },
+        },
         {
           provide: AstronautDutyClient,
-          useValue: { getAstronautDutiesByName: () => of(duties) },
+          useValue: {
+            getAstronautDutiesByName: () => of(duties),
+            createAstronautDuty: (body?: CreateAstronautDuty) => {
+              createdDuties.push(body);
+              return saveResponse;
+            },
+          },
         },
       ],
     });
     repository = TestBed.inject(ApiPersonRepository);
+  });
+
+  it('sends a new duty with the API field names', async () => {
+    await firstValueFrom(
+      repository.addDuty('Jane Doe', { rank: 'LTC', title: 'Commander', startDate: '2025-01-01' }),
+      { defaultValue: undefined },
+    );
+
+    expect(createdDuties).toEqual([
+      { name: 'Jane Doe', rank: 'LTC', dutyTitle: 'Commander', dutyStartDate: '2025-01-01' },
+    ]);
+  });
+
+  it('sends a rename for the person', async () => {
+    await firstValueFrom(repository.rename('Jane Doe', 'Jane Smith'), { defaultValue: undefined });
+
+    expect(updates).toEqual([['Jane Doe', { newName: 'Jane Smith' }]]);
+  });
+
+  it('turns a rejected save into an Error with the API message', async () => {
+    saveResponse = throwError(() => ({
+      success: false,
+      message: 'Bad Request: Person with this name already exists',
+    }));
+
+    await expect(firstValueFrom(repository.rename('Jane Doe', 'Sam Carter'))).rejects.toThrow(
+      /^Person with this name already exists$/,
+    );
   });
 
   it('maps people, using null for missing astronaut details', async () => {
@@ -133,6 +185,18 @@ describe('toErrorMessage', () => {
     expect(toErrorMessage(new ApiException('error', 502, '<html>', {}, null))).toBe(
       'The server returned an error (502).',
     );
+  });
+
+  it('drops the API\'s "Bad Request:" prefix', () => {
+    expect(
+      toErrorMessage({ success: false, message: 'Bad Request: Name cannot be empty' }),
+    ).toBe('Name cannot be empty');
+  });
+
+  it('uses the title of an ASP.NET validation problem', () => {
+    expect(
+      toErrorMessage({ title: 'One or more validation errors occurred.', status: 400 }),
+    ).toBe('One or more validation errors occurred.');
   });
 
   it('handles values that are not errors', () => {

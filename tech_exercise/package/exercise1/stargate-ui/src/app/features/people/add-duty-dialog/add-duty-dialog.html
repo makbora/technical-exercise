@@ -1,0 +1,84 @@
+<dialog
+  #dialog
+  class="modal"
+  aria-labelledby="add-duty-title"
+  (cancel)="onCancelKey($event)"
+  (close)="closed.emit()"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="modal-header">
+      <h2 id="add-duty-title">Add duty</h2>
+      <p>{{ personName() }}</p>
+    </header>
+
+    <div class="modal-body">
+      <div class="field">
+        <label for="duty-rank">Rank</label>
+        <input
+          id="duty-rank"
+          formControlName="rank"
+          autocomplete="off"
+          placeholder="e.g. CPT"
+          [attr.aria-invalid]="invalid('rank')"
+          [attr.aria-describedby]="invalid('rank') ? 'duty-rank-error' : null"
+        />
+        @if (invalid('rank')) {
+          <small id="duty-rank-error" class="field-error">Enter a rank.</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="duty-title">Duty title</label>
+        <input
+          id="duty-title"
+          formControlName="title"
+          autocomplete="off"
+          placeholder="e.g. Commander"
+          [attr.aria-invalid]="invalid('title')"
+          [attr.aria-describedby]="
+            invalid('title') ? 'duty-title-error duty-title-hint' : 'duty-title-hint'
+          "
+        />
+        @if (invalid('title')) {
+          <small id="duty-title-error" class="field-error">Enter a duty title.</small>
+        }
+        <small id="duty-title-hint" class="hint">
+          Enter {{ retiredTitle }} to retire this astronaut.
+        </small>
+      </div>
+
+      <div class="field">
+        <label for="duty-start">Start date</label>
+        <input
+          id="duty-start"
+          type="date"
+          formControlName="startDate"
+          [attr.min]="minStartDate()"
+          [attr.aria-invalid]="invalid('startDate')"
+          [attr.aria-describedby]="invalid('startDate') ? 'duty-start-error' : null"
+        />
+        @if (invalid('startDate')) {
+          <small id="duty-start-error" class="field-error">
+            @if (form.controls.startDate.hasError('notAfterLatest')) {
+              Must be after {{ latestStartDate() | date: 'mediumDate' }}, when the current duty
+              started.
+            } @else {
+              Choose a start date.
+            }
+          </small>
+        }
+      </div>
+
+      @if (error(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="button" [disabled]="saving()" (click)="cancel()">Cancel</button>
+      <button type="submit" class="button primary" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Add duty' }}
+      </button>
+    </footer>
+  </form>
+</dialog>

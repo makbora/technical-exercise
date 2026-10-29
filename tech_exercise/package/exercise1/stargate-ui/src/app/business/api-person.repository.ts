@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { PersonRepository } from '@abstractions/person.repository';
-import { AstronautDuty, AstronautProfile, PersonSummary } from '@abstractions/models/person';
+import {
+  AstronautDuty,
+  AstronautProfile,
+  NewAstronautDuty,
+  PersonSummary,
+} from '@abstractions/models/person';
 import {
   ApiException,
   AstronautDutyClient,
@@ -29,6 +34,27 @@ export class ApiPersonRepository extends PersonRepository {
         person: r.person ? toPersonSummary(r.person) : emptyPerson(name),
         duties: (r.astronautDuties ?? []).map(toDuty),
       })),
+      catchError((e) => throwError(() => new Error(toErrorMessage(e)))),
+    );
+  }
+
+  addDuty(name: string, duty: NewAstronautDuty): Observable<void> {
+    return this.dutyClient
+      .createAstronautDuty({
+        name,
+        rank: duty.rank,
+        dutyTitle: duty.title,
+        dutyStartDate: duty.startDate,
+      })
+      .pipe(
+        map(() => undefined),
+        catchError((e) => throwError(() => new Error(toErrorMessage(e)))),
+      );
+  }
+
+  rename(name: string, newName: string): Observable<void> {
+    return this.personClient.updatePerson(name, { newName }).pipe(
+      map(() => undefined),
       catchError((e) => throwError(() => new Error(toErrorMessage(e)))),
     );
   }
@@ -68,30 +94,31 @@ function emptyPerson(name: string): PersonSummary {
 
 /**
  * The generated client fails in two ways: for documented error responses (400) it throws the
- * API's BaseResponse body itself; for anything else it throws an ApiException.
+ * response body itself; for anything else it throws an ApiException.
  */
 export function toErrorMessage(e: unknown): string {
   if (e != null && ApiException.isApiException(e)) {
     if (e.status === 0) return 'Could not reach the Stargate API. Is it running?';
     return messageFromBody(e.response) ?? `The server returned an error (${e.status}).`;
   }
-  if (isMessage(e)) return e.message;
-  return 'Something went wrong.';
+  return messageOf(e) ?? 'Something went wrong.';
 }
 
 function messageFromBody(body: string): string | null {
   try {
-    const parsed: unknown = JSON.parse(body);
-    return isMessage(parsed) ? parsed.message : null;
+    return messageOf(JSON.parse(body));
   } catch {
     return null;
   }
 }
 
-function isMessage(value: unknown): value is { message: string } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as { message?: unknown }).message === 'string'
-  );
+/**
+ * Reads the message from the API's BaseResponse, or the title from ASP.NET's ProblemDetails
+ * (returned when the request body fails model binding), without the API's "Bad Request:" prefix.
+ */
+function messageOf(value: unknown): string | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const { message, title } = value as { message?: unknown; title?: unknown };
+  const text = typeof message === 'string' ? message : typeof title === 'string' ? title : null;
+  return text?.replace(/^Bad Request:\s*/, '') || null;
 }

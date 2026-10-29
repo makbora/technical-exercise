@@ -44,10 +44,38 @@
       </button>
     </div>
   } @else if (store.profile(); as profile) {
-    <app-person-detail [profile]="profile" />
+    <app-person-detail
+      [profile]="profile"
+      (addDuty)="openDialog('add-duty')"
+      (edit)="openDialog('edit')"
+    />
   } @else {
     <div class="state">
       <p>Select a person to see their astronaut record.</p>
     </div>
   }
 </section>
+
+@if (store.profile(); as profile) {
+  @switch (dialog()) {
+    @case ('add-duty') {
+      <app-add-duty-dialog
+        [personName]="profile.person.name"
+        [latestStartDate]="profile.duties[0]?.startDate ?? null"
+        [saving]="store.saving()"
+        [error]="store.saveError()"
+        (save)="addDuty($event)"
+        (closed)="closeDialog()"
+      />
+    }
+    @case ('edit') {
+      <app-edit-person-dialog
+        [currentName]="profile.person.name"
+        [saving]="store.saving()"
+        [error]="store.saveError()"
+        (save)="rename($event)"
+        (closed)="closeDialog()"
+      />
+    }
+  }
+}

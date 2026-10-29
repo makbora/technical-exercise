@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { AstronautProfile, PersonSummary } from './models/person';
+import { AstronautProfile, NewAstronautDuty, PersonSummary } from './models/person';
 
 /**
  * Where people and their astronaut records come from.
@@ -9,4 +9,6 @@ import { AstronautProfile, PersonSummary } from './models/person';
 export abstract class PersonRepository {
   abstract getAll(): Observable<PersonSummary[]>;
   abstract getProfile(name: string): Observable<AstronautProfile>;
+  abstract addDuty(name: string, duty: NewAstronautDuty): Observable<void>;
+  abstract rename(name: string, newName: string): Observable<void>;
 }

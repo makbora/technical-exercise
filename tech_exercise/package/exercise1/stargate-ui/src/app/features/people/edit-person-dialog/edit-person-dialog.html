@@ -1,0 +1,51 @@
+<dialog
+  #dialog
+  class="modal"
+  aria-labelledby="edit-person-title"
+  (cancel)="onCancelKey($event)"
+  (close)="closed.emit()"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="modal-header">
+      <h2 id="edit-person-title">Edit person</h2>
+      <p>{{ currentName() }}</p>
+    </header>
+
+    <div class="modal-body">
+      <div class="field">
+        <label for="person-name">Name</label>
+        <input
+          id="person-name"
+          formControlName="name"
+          autocomplete="off"
+          [attr.aria-invalid]="invalid()"
+          [attr.aria-describedby]="invalid() ? 'person-name-error' : null"
+        />
+        @if (invalid()) {
+          <small id="person-name-error" class="field-error">
+            @if (form.controls.name.hasError('unchanged')) {
+              Enter a different name.
+            } @else {
+              Enter a name.
+            }
+          </small>
+        }
+      </div>
+
+      <p class="hint">
+        Rank and duty title come from this person's duties. Add a duty to change them.
+      </p>
+
+      @if (error(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="button" [disabled]="saving()" (click)="cancel()">Cancel</button>
+      <button type="submit" class="button primary" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </footer>
+  </form>
+</dialog>

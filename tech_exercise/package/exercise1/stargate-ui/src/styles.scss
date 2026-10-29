@@ -9,6 +9,7 @@
   --muted: #5b6b82;
   --accent: #3557d6;
   --accent-soft: #e7ecfd;
+  --on-accent: #ffffff;
   --active: #1f7a52;
   --active-soft: #e2f4ea;
   --retired: #8a5d00;
@@ -30,6 +31,7 @@
     --muted: #93a1b8;
     --accent: #8aa2ff;
     --accent-soft: #1e2a52;
+    --on-accent: #0b1020;
     --active: #5fd39b;
     --active-soft: #11362a;
     --retired: #e8b858;
@@ -150,9 +152,113 @@ button {
   background: var(--surface);
   cursor: pointer;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: var(--surface-2);
   }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  &.primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+
+    &:hover:not(:disabled) {
+      background: var(--accent);
+      filter: brightness(1.1);
+    }
+  }
+}
+
+/* ---------- Modal dialogs and forms ---------- */
+
+.modal {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 30%);
+
+  &::backdrop {
+    background: rgb(11 16 32 / 55%);
+  }
+}
+
+.modal-header {
+  padding: 20px 24px 0;
+
+  h2 {
+    margin: 0;
+    font-size: 1.125rem;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+}
+
+.modal-body {
+  display: grid;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+
+  label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  input {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+
+    &[aria-invalid='true'] {
+      border-color: var(--danger);
+    }
+  }
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.75rem;
+}
+
+.form-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.875rem;
 }
 
 .skeleton {
