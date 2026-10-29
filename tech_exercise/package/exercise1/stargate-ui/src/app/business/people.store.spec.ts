@@ -11,6 +11,7 @@ class FakePersonRepository extends PersonRepository {
   readonly save$ = new Subject<void>();
   readonly addedDuties: [string, NewAstronautDuty][] = [];
   readonly renames: [string, string][] = [];
+  readonly addedPeople: string[] = [];
   getAllCalls = 0;
 
   getAll(): Observable<PersonSummary[]> {
@@ -31,6 +32,11 @@ class FakePersonRepository extends PersonRepository {
 
   rename(name: string, newName: string): Observable<void> {
     this.renames.push([name, newName]);
+    return this.save$;
+  }
+
+  addPerson(name: string): Observable<void> {
+    this.addedPeople.push(name);
     return this.save$;
   }
 
@@ -115,6 +121,30 @@ describe('PeopleStore', () => {
 
     expect(store.profileError()).toBeNull();
     expect(store.profileLoading()).toBe(true);
+  });
+
+  describe('adding a person', () => {
+    it('saves them, refreshes the list and selects them', async () => {
+      const saved = store.addPerson('Vala Mal Doran');
+      repository.succeedSave();
+
+      expect(await saved).toBe(true);
+      expect(repository.addedPeople).toEqual(['Vala Mal Doran']);
+      expect(repository.getAllCalls).toBe(1);
+      expect(store.peopleLoading()).toBe(false);
+      expect(store.selectedName()).toBe('Vala Mal Doran');
+      expect(store.profileLoading()).toBe(true);
+    });
+
+    it('reports a failed save and leaves the selection alone', async () => {
+      const saved = store.addPerson('Jane Doe');
+      repository.save$.error(new Error('Person with this name already exists'));
+
+      expect(await saved).toBe(false);
+      expect(store.saveError()).toBe('Person with this name already exists');
+      expect(store.selectedName()).toBeNull();
+      expect(repository.getAllCalls).toBe(0);
+    });
   });
 
   describe('saving', () => {

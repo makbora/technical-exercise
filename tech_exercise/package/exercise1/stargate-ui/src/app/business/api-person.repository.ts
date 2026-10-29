@@ -38,6 +38,13 @@ export class ApiPersonRepository extends PersonRepository {
     );
   }
 
+  addPerson(name: string): Observable<void> {
+    return this.personClient.createPerson(name).pipe(
+      map(() => undefined),
+      catchError((e) => throwError(() => new Error(toErrorMessage(e)))),
+    );
+  }
+
   addDuty(name: string, duty: NewAstronautDuty): Observable<void> {
     return this.dutyClient
       .createAstronautDuty({

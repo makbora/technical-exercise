@@ -1,14 +1,17 @@
+@let editing = mode() === 'edit';
 <dialog
   #dialog
   class="modal"
-  aria-labelledby="edit-person-title"
+  aria-labelledby="person-name-title"
   (cancel)="onCancelKey($event)"
   (close)="closed.emit()"
 >
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <header class="modal-header">
-      <h2 id="edit-person-title">Edit person</h2>
-      <p>{{ currentName() }}</p>
+      <h2 id="person-name-title">{{ editing ? 'Edit person' : 'Add person' }}</h2>
+      @if (editing) {
+        <p>{{ currentName() }}</p>
+      }
     </header>
 
     <div class="modal-body">
@@ -18,6 +21,7 @@
           id="person-name"
           formControlName="name"
           autocomplete="off"
+          [attr.placeholder]="editing ? null : 'e.g. Jane Doe'"
           [attr.aria-invalid]="invalid()"
           [attr.aria-describedby]="invalid() ? 'person-name-error' : null"
         />
@@ -33,7 +37,11 @@
       </div>
 
       <p class="hint">
-        Rank and duty title come from this person's duties. Add a duty to change them.
+        @if (editing) {
+          Rank and duty title come from this person's duties. Add a duty to change them.
+        } @else {
+          Add a duty afterwards to make them an astronaut.
+        }
       </p>
 
       @if (error(); as message) {
@@ -44,7 +52,7 @@
     <footer class="modal-footer">
       <button type="button" class="button" [disabled]="saving()" (click)="cancel()">Cancel</button>
       <button type="submit" class="button primary" [disabled]="saving()">
-        {{ saving() ? 'Saving…' : 'Save' }}
+        {{ saving() ? 'Saving…' : editing ? 'Save' : 'Add person' }}
       </button>
     </footer>
   </form>

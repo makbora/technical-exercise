@@ -6,6 +6,12 @@
     }
   </header>
 
+  <div class="list-actions">
+    <button type="button" class="button primary add-person" (click)="openDialog('add-person')">
+      <span aria-hidden="true">+</span> Add person
+    </button>
+  </div>
+
   @if (store.peopleLoading()) {
     <div class="list-skeleton" aria-busy="true" aria-label="Loading people">
       @for (row of [1, 2, 3, 4, 5, 6]; track row) {
@@ -56,9 +62,18 @@
   }
 </section>
 
-@if (store.profile(); as profile) {
-  @switch (dialog()) {
-    @case ('add-duty') {
+@switch (dialog()) {
+  @case ('add-person') {
+    <app-person-name-dialog
+      mode="add"
+      [saving]="store.saving()"
+      [error]="store.saveError()"
+      (save)="addPerson($event)"
+      (closed)="closeDialog()"
+    />
+  }
+  @case ('add-duty') {
+    @if (store.profile(); as profile) {
       <app-add-duty-dialog
         [personName]="profile.person.name"
         [latestStartDate]="profile.duties[0]?.startDate ?? null"
@@ -68,8 +83,11 @@
         (closed)="closeDialog()"
       />
     }
-    @case ('edit') {
-      <app-edit-person-dialog
+  }
+  @case ('edit') {
+    @if (store.profile(); as profile) {
+      <app-person-name-dialog
+        mode="edit"
         [currentName]="profile.person.name"
         [saving]="store.saving()"
         [error]="store.saveError()"

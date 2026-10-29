@@ -9,6 +9,7 @@ import { AstronautProfile, NewAstronautDuty, PersonSummary } from './models/pers
 export abstract class PersonRepository {
   abstract getAll(): Observable<PersonSummary[]>;
   abstract getProfile(name: string): Observable<AstronautProfile>;
+  abstract addPerson(name: string): Observable<void>;
   abstract addDuty(name: string, duty: NewAstronautDuty): Observable<void>;
   abstract rename(name: string, newName: string): Observable<void>;
 }

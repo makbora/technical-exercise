@@ -16,12 +16,14 @@ describe('ApiPersonRepository', () => {
   let duties: GetAstronautDutiesByNameResult;
   let saveResponse: Observable<unknown>;
   let createdDuties: (CreateAstronautDuty | undefined)[];
+  let createdPeople: (string | undefined)[];
   let updates: [string, UpdatePerson | undefined][];
   let repository: ApiPersonRepository;
 
   beforeEach(() => {
     saveResponse = of({ success: true });
     createdDuties = [];
+    createdPeople = [];
     updates = [];
 
     TestBed.configureTestingModule({
@@ -31,6 +33,10 @@ describe('ApiPersonRepository', () => {
           provide: PersonClient,
           useValue: {
             getPeople: () => people,
+            createPerson: (body?: string) => {
+              createdPeople.push(body);
+              return saveResponse;
+            },
             updatePerson: (name: string, body?: UpdatePerson) => {
               updates.push([name, body]);
               return saveResponse;
@@ -61,6 +67,12 @@ describe('ApiPersonRepository', () => {
     expect(createdDuties).toEqual([
       { name: 'Jane Doe', rank: 'LTC', dutyTitle: 'Commander', dutyStartDate: '2025-01-01' },
     ]);
+  });
+
+  it('creates a person by name', async () => {
+    await firstValueFrom(repository.addPerson('Vala Mal Doran'), { defaultValue: undefined });
+
+    expect(createdPeople).toEqual(['Vala Mal Doran']);
   });
 
   it('sends a rename for the person', async () => {

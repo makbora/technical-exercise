@@ -12,14 +12,21 @@ import {
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { notBlank, showModal } from '../dialog-form';
 
-/** Modal form for renaming a person. Opens when created; the parent removes it to close it. */
+export type PersonNameDialogMode = 'add' | 'edit';
+
+/**
+ * Modal form for a person's name: adding a new person, or renaming the current one.
+ * Opens when created; the parent removes it to close it.
+ */
 @Component({
-  selector: 'app-edit-person-dialog',
+  selector: 'app-person-name-dialog',
   imports: [ReactiveFormsModule],
-  templateUrl: './edit-person-dialog.html',
+  templateUrl: './person-name-dialog.html',
 })
-export class EditPersonDialog implements OnInit {
-  readonly currentName = input.required<string>();
+export class PersonNameDialog implements OnInit {
+  readonly mode = input.required<PersonNameDialogMode>();
+  /** The name being edited. Only used in edit mode. */
+  readonly currentName = input('');
   readonly saving = input(false);
   readonly error = input<string | null>(null);
 
@@ -36,7 +43,9 @@ export class EditPersonDialog implements OnInit {
   }
 
   ngOnInit(): void {
-    // currentName is only readable once inputs are set, so this validator is added here.
+    if (this.mode() !== 'edit') return;
+
+    // Inputs are only readable from here on, so the edit-only validator is added now.
     this.form.controls.name.addValidators((control: AbstractControl<string>) =>
       this.validateChanged(control),
     );
@@ -58,6 +67,7 @@ export class EditPersonDialog implements OnInit {
     this.dialog().nativeElement.close();
   }
 
+  /** Esc closes a modal dialog; don't let it close while a save is in flight. */
   protected onCancelKey(event: Event): void {
     if (this.saving()) event.preventDefault();
   }

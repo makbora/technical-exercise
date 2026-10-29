@@ -2,16 +2,16 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { NewAstronautDuty } from '@abstractions/models/person';
 import { PeopleStore } from '@business/people.store';
 import { AddDutyDialog } from './add-duty-dialog/add-duty-dialog';
-import { EditPersonDialog } from './edit-person-dialog/edit-person-dialog';
 import { PersonDetail } from './person-detail/person-detail';
 import { PersonList } from './person-list/person-list';
+import { PersonNameDialog } from './person-name-dialog/person-name-dialog';
 
-type PeopleDialog = 'add-duty' | 'edit';
+type PeopleDialog = 'add-person' | 'add-duty' | 'edit';
 
 /** People list on the left; the selected person's details and duties on the right. */
 @Component({
   selector: 'app-people-page',
-  imports: [PersonList, PersonDetail, AddDutyDialog, EditPersonDialog],
+  imports: [PersonList, PersonDetail, AddDutyDialog, PersonNameDialog],
   templateUrl: './people-page.html',
   styleUrl: './people-page.scss',
 })
@@ -30,6 +30,10 @@ export class PeoplePage implements OnInit {
 
   protected closeDialog(): void {
     this.dialog.set(null);
+  }
+
+  protected async addPerson(name: string): Promise<void> {
+    if (await this.store.addPerson(name)) this.closeDialog();
   }
 
   protected async addDuty(duty: NewAstronautDuty): Promise<void> {

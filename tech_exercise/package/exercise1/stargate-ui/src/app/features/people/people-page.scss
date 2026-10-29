@@ -31,6 +31,17 @@
   }
 }
 
+.list-actions {
+  flex: none;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.add-person {
+  width: 100%;
+  font-weight: 600;
+}
+
 .count {
   padding: 1px 8px;
   border-radius: 999px;

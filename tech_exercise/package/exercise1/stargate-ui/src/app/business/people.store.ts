@@ -33,43 +33,57 @@ export class PeopleStore {
     this.fetchProfile(name, true);
   }
 
+  /** Adds a person and selects them. Resolves to true once it is saved. */
+  async addPerson(name: string): Promise<boolean> {
+    if (!(await this.save(this.repository.addPerson(name)))) return false;
+    this.fetchPeople(false);
+    this.select(name);
+    return true;
+  }
+
   /** Adds a duty to the selected person. Resolves to true once it is saved. */
-  addDuty(duty: NewAstronautDuty): Promise<boolean> {
+  async addDuty(duty: NewAstronautDuty): Promise<boolean> {
     const name = this.selectedName();
-    if (!name) return Promise.resolve(false);
-    return this.save(this.repository.addDuty(name, duty), name);
+    if (!name || !(await this.save(this.repository.addDuty(name, duty)))) return false;
+    this.refreshInPlace(name);
+    return true;
   }
 
   /** Renames the selected person. Resolves to true once it is saved. */
-  rename(newName: string): Promise<boolean> {
+  async rename(newName: string): Promise<boolean> {
     const name = this.selectedName();
-    if (!name) return Promise.resolve(false);
-    return this.save(this.repository.rename(name, newName), newName);
+    if (!name || !(await this.save(this.repository.rename(name, newName)))) return false;
+    this.refreshInPlace(newName);
+    return true;
   }
 
   clearSaveError(): void {
     this.saveError.set(null);
   }
 
-  private async save(request: Observable<void>, nameAfterSave: string): Promise<boolean> {
+  private async save(request: Observable<void>): Promise<boolean> {
     this.saving.set(true);
     this.saveError.set(null);
 
     try {
       await firstValueFrom(request, { defaultValue: undefined });
+      return true;
     } catch (e) {
       this.saveError.set((e as Error).message);
       return false;
     } finally {
       this.saving.set(false);
     }
+  }
 
-    // The save changes the list (name, current rank and title) and the profile, so refresh both
-    // in place rather than showing the loading placeholders again.
-    this.selectedName.set(nameAfterSave);
+  /**
+   * After a change to the selected person, refresh the list (name, current rank and title) and
+   * their profile without showing the loading placeholders again.
+   */
+  private refreshInPlace(name: string): void {
+    this.selectedName.set(name);
     this.fetchPeople(false);
-    this.fetchProfile(nameAfterSave, false);
-    return true;
+    this.fetchProfile(name, false);
   }
 
   private fetchPeople(showLoading: boolean): void {
