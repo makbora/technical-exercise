@@ -1,0 +1,23 @@
+{
+    "runtime": "Net100",
+    "documentGenerator": {
+        "fromDocument": {
+            "url": "http://localhost:5204/swagger/v1/swagger.json"
+        }
+    },
+    "codeGenerators": {
+        "openApiToCSharpClient": {
+            "template": "Angular",
+            "output": "src/app/stargate-api.ts",
+            "className": "{controller}Client",
+            "operationGenerationMode": "MultipleClientsFromFirstTagAndOperationId",
+            "httpClass": "HttpClient",
+            "injectionTokenType": "InjectionToken",
+            "rxjsVersion": "7.8.0",
+            "useSingltonProvider": true,
+            "typeStyle": "Interface",
+            "generateClientClasses": true,
+            "generateDtoTypes": true
+        }
+    }
+}
