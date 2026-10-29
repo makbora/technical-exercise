@@ -1,0 +1,32 @@
+<ul>
+  @for (person of people(); track person.id) {
+    @let isSelected = person.name === selectedName();
+    @let personStatus = status(person);
+    <li>
+      <button
+        type="button"
+        class="person"
+        [class.selected]="isSelected"
+        [attr.aria-current]="isSelected ? 'true' : null"
+        (click)="selected.emit(person.name)"
+      >
+        <span class="avatar" aria-hidden="true">{{ initials(person.name) }}</span>
+        <span class="text">
+          <span class="name">{{ person.name }}</span>
+          <span class="sub">
+            @if (personStatus === 'none') {
+              No astronaut record
+            } @else {
+              {{ person.currentRank }} · {{ person.currentDutyTitle }}
+            }
+          </span>
+        </span>
+        @if (personStatus !== 'none') {
+          <span class="chip" [class]="personStatus">
+            {{ personStatus === 'retired' ? 'Retired' : 'Active' }}
+          </span>
+        }
+      </button>
+    </li>
+  }
+</ul>

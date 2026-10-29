@@ -1,0 +1,67 @@
+<header class="profile-header">
+  <span class="avatar large" aria-hidden="true">{{ initials() }}</span>
+  <div>
+    <h2>{{ person().name }}</h2>
+    @switch (status()) {
+      @case ('active') {
+        <span class="chip active">Active astronaut</span>
+      }
+      @case ('retired') {
+        <span class="chip retired">Retired</span>
+      }
+      @default {
+        <span class="chip">Not an astronaut</span>
+      }
+    }
+  </div>
+</header>
+
+@if (status() === 'none') {
+  <p class="state">{{ person().name }} has no astronaut assignments on record.</p>
+} @else {
+  <section aria-labelledby="details-heading">
+    <h3 id="details-heading">Astronaut details</h3>
+    <dl class="facts">
+      <div>
+        <dt>Current rank</dt>
+        <dd>{{ person().currentRank }}</dd>
+      </div>
+      <div>
+        <dt>Current duty</dt>
+        <dd>{{ person().currentDutyTitle }}</dd>
+      </div>
+      <div>
+        <dt>Career start</dt>
+        <dd>{{ person().careerStartDate | date: 'mediumDate' }}</dd>
+      </div>
+      <div>
+        <dt>Career end</dt>
+        <dd>{{ person().careerEndDate ? (person().careerEndDate | date: 'mediumDate') : '—' }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="duties-heading">
+    <h3 id="duties-heading">
+      Duty history <span class="count">{{ profile().duties.length }}</span>
+    </h3>
+    <ol class="timeline">
+      @for (duty of profile().duties; track duty.id) {
+        @let isRetirement = duty.title === retiredTitle;
+        <li [class.current]="!duty.endDate" [class.retired]="isRetirement">
+          <div class="duty-title">
+            <strong>{{ duty.title }}</strong>
+            <span class="rank">{{ duty.rank }}</span>
+            @if (!duty.endDate) {
+              <span class="chip" [class]="isRetirement ? 'retired' : 'active'">Current</span>
+            }
+          </div>
+          <div class="dates">
+            {{ duty.startDate | date: 'mediumDate' }} –
+            {{ duty.endDate ? (duty.endDate | date: 'mediumDate') : 'Present' }}
+          </div>
+        </li>
+      }
+    </ol>
+  </section>
+}

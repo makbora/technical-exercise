@@ -1,0 +1,53 @@
+<section class="list-pane panel" aria-labelledby="people-heading">
+  <header class="pane-header">
+    <h2 id="people-heading">People</h2>
+    @if (!store.peopleLoading() && !store.peopleError()) {
+      <span class="count">{{ store.people().length }}</span>
+    }
+  </header>
+
+  @if (store.peopleLoading()) {
+    <div class="list-skeleton" aria-busy="true" aria-label="Loading people">
+      @for (row of [1, 2, 3, 4, 5, 6]; track row) {
+        <span class="skeleton"></span>
+      }
+    </div>
+  } @else if (store.peopleError(); as error) {
+    <div class="state error" role="alert">
+      <p>{{ error }}</p>
+      <button class="button" type="button" (click)="store.loadPeople()">Try again</button>
+    </div>
+  } @else if (store.people().length === 0) {
+    <p class="state">No people have been added yet.</p>
+  } @else {
+    <app-person-list
+      [people]="store.people()"
+      [selectedName]="store.selectedName()"
+      (selected)="store.select($event)"
+    />
+  }
+</section>
+
+<section class="detail-pane panel" aria-live="polite">
+  @if (store.profileLoading()) {
+    <div class="detail-skeleton" aria-busy="true" aria-label="Loading astronaut record">
+      <span class="skeleton title"></span>
+      <span class="skeleton"></span>
+      <span class="skeleton"></span>
+      <span class="skeleton block"></span>
+    </div>
+  } @else if (store.profileError(); as error) {
+    <div class="state error" role="alert">
+      <p>{{ error }}</p>
+      <button class="button" type="button" (click)="store.select(store.selectedName()!)">
+        Try again
+      </button>
+    </div>
+  } @else if (store.profile(); as profile) {
+    <app-person-detail [profile]="profile" />
+  } @else {
+    <div class="state">
+      <p>Select a person to see their astronaut record.</p>
+    </div>
+  }
+</section>

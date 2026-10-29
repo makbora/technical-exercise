@@ -8,16 +8,17 @@
     "codeGenerators": {
         "openApiToTypeScriptClient": {
             "template": "Angular",
-            "output": "src/app/stargate-api.ts",
+            "output": "src/app/api/stargate-api.ts",
             "className": "{controller}Client",
             "operationGenerationMode": "MultipleClientsFromFirstTagAndOperationId",
             "httpClass": "HttpClient",
             "injectionTokenType": "InjectionToken",
-            "rxJsVersion": "7.0",
-            "typeScriptVerson": "5.0",
+            "rxJsVersion": 7.0,
+            "typeScriptVersion": 5.0,
             "useSingletonProvider": true,
+            "exceptionClass": "ApiException",
             "typeStyle": "Interface",
-            "dateTimeType": "string",
+            "dateTimeType": "String",
             "generateClientClasses": true,
             "generateDtoTypes": true
         }
