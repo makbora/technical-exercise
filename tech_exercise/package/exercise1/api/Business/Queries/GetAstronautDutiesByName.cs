@@ -24,7 +24,7 @@ namespace StargateAPI.Business.Queries
         {
             if (string.IsNullOrWhiteSpace(request.Name)) throw new BadHttpRequestException("Bad Request: Name cannot be empty");
             
-            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => EF.Functions.Collate(z.Name, "NOCASE") == request.Name, cancellationToken);
 
             if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
         }
@@ -47,7 +47,7 @@ namespace StargateAPI.Business.Queries
             var person = await _context.People
             .AsNoTracking()
             .Include(z => z.AstronautDetail)
-            .Where(z => z.Name == request.Name)
+            .Where(z => EF.Functions.Collate(z.Name, "NOCASE") == request.Name)
             .Select(z => new PersonAstronaut()
             {
                 PersonId = z.Id,

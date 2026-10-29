@@ -53,6 +53,27 @@ public class CreateAstronautDutyTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task Process_FindsPersonIgnoringCapitalization()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Existing Person");
+        var command = new CreateAstronautDuty
+        {
+            Name = "EXISTING person",
+            Rank = "Captain",
+            DutyTitle = "Mission Specialist",
+            DutyStartDate = DateTime.UtcNow
+        };
+        var preProcessor = new CreateAstronautDutyPreProcessor(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(existingPerson.Id, command.Person.Id);
+    }
+
+    [Fact]
     public async Task Process_DoesNotThrowException_WhenValidRequest()
     {
         // Arrange

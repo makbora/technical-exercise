@@ -78,6 +78,64 @@ public class UpdatePersonTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task Process_ThrowsException_WhenNewNameDiffersOnlyByCapitalizationFromAnotherPerson()
+    {
+        // Arrange
+        var existingPerson1 = _fixture.CreateTestPerson("Existing Person 1");
+        _fixture.CreateTestPerson("Existing Person 2");
+        var command = new UpdatePerson
+        {
+            Name = existingPerson1.Name,
+            NewName = "EXISTING person 2"
+        };
+        var preProcessor = new UpdatePersonPreProcessor(_fixture.Context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() => preProcessor.Process(command, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Process_FindsPersonIgnoringCapitalization()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Existing Person");
+        var command = new UpdatePerson
+        {
+            Name = "existing PERSON",
+            NewName = "New Name"
+        };
+        var preProcessor = new UpdatePersonPreProcessor(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(existingPerson.Id, command.Person?.Id);
+    }
+
+    [Fact]
+    public async Task ProcessAndHandle_AllowFixingTheCapitalizationOfTheirOwnName()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("jane doe");
+        var command = new UpdatePerson
+        {
+            Name = existingPerson.Name,
+            NewName = "Jane Doe"
+        };
+        var preProcessor = new UpdatePersonPreProcessor(_fixture.Context);
+        var handler = new UpdatePersonHandler(_fixture.Context);
+
+        // Act
+        await preProcessor.Process(command, CancellationToken.None);
+        await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        var updatedPerson = await _fixture.Context.People.AsNoTracking().SingleAsync(z => z.Id == existingPerson.Id);
+        Assert.Equal("Jane Doe", updatedPerson.Name);
+    }
+
+    [Fact]
     public async Task Process_DoesNotThrowException_WhenValidRequest()
     {
         // Arrange

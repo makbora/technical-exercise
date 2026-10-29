@@ -50,6 +50,28 @@ public class GetAstronautDutiesByNameTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task ReturnsResult_WhenNameDiffersOnlyByCapitalization()
+    {
+        // Arrange
+        var existingPerson = _fixture.CreateTestPerson("Mixed Case Astronaut");
+        _fixture.CreateTestAstronautDuty(existingPerson, "CPT", "Pilot", new DateTime(2020, 1, 1));
+        var query = new GetAstronautDutiesByName
+        {
+            Name = "MIXED case ASTRONAUT"
+        };
+        var processor = new GetAstronautDutiesByNamePreProcessor(_fixture.Context);
+        var handler = new GetAstronautDutiesByNameHandler(_fixture.Context);
+
+        // Act
+        await processor.Process(query, CancellationToken.None);
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.Equal("Mixed Case Astronaut", result.Person.Name);
+        Assert.Single(result.AstronautDuties);
+    }
+
+    [Fact]
     public async Task Processor_ThrowsException_WhenNameIsEmpty()
     {
         // Arrange

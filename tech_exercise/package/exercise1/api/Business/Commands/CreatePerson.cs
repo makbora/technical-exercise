@@ -22,7 +22,7 @@ namespace StargateAPI.Business.Commands
         {
             if (string.IsNullOrWhiteSpace(request.Name)) throw new BadHttpRequestException("Bad Request: Name cannot be empty");
             
-            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => EF.Functions.Collate(z.Name, "NOCASE") == request.Name, cancellationToken);
 
             if (person is not null) throw new BadHttpRequestException("Bad Request: Person with this name already exists");
         }

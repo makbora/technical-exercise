@@ -27,7 +27,7 @@ namespace StargateAPI.Business.Queries
             var person = await _context.People
             .AsNoTracking()
             .Include(z => z.AstronautDetail)
-            .Where(z => z.Name == request.Name)
+            .Where(z => EF.Functions.Collate(z.Name, "NOCASE") == request.Name)
             .Select(z => new PersonAstronaut()
             {
                 PersonId = z.Id,

@@ -32,7 +32,7 @@ namespace StargateAPI.Business.Commands
 
         public async Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
         {
-            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => EF.Functions.Collate(z.Name, "NOCASE") == request.Name, cancellationToken);
 
             if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
 

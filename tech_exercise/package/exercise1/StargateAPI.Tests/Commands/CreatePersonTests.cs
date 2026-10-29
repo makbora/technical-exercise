@@ -57,6 +57,21 @@ public class CreatePersonTests : IClassFixture<TestDbContextFixture>
     }
 
     [Fact]
+    public async Task Process_ThrowsException_WhenNameDiffersOnlyByCapitalization()
+    {
+        // Arrange
+        _fixture.CreateTestPerson("Jane Doe");
+        var command = new CreatePerson
+        {
+            Name = "jane DOE"
+        };
+        var preProcessor = new CreatePersonPreProcessor(_fixture.Context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<BadHttpRequestException>(() => preProcessor.Process(command, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Process_DoesNotThrowException_WhenNameIsProvided()
     {
         // Arrange

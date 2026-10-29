@@ -24,11 +24,12 @@ namespace StargateAPI.Business.Commands
         {
             if (string.IsNullOrWhiteSpace(request.Name)||string.IsNullOrWhiteSpace(request.NewName)) throw new BadHttpRequestException("Bad Request: Name and NewName cannot be empty");
 
-            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
+            var person = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => EF.Functions.Collate(z.Name, "NOCASE") == request.Name, cancellationToken);
 
             if (person is null) throw new BadHttpRequestException("Bad Request: Person with this name does not exist");
 
-            var newPerson = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => z.Name == request.NewName, cancellationToken);
+            // Names are unique regardless of capitalization; the person themselves is excluded so they can fix their own capitalization.
+            var newPerson = await _context.People.AsNoTracking().FirstOrDefaultAsync(z => EF.Functions.Collate(z.Name, "NOCASE") == request.NewName && z.Id != person.Id, cancellationToken);
 
             if (newPerson is not null) throw new BadHttpRequestException("Bad Request: Person with this name already exists");
 
