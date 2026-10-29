@@ -1,7 +1,8 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, Subscription, firstValueFrom } from 'rxjs';
 import { PersonRepository } from '@abstractions/person.repository';
 import { AstronautProfile, NewAstronautDuty, PersonSummary } from '@abstractions/models/person';
+import { filterPeople } from './person-search';
 
 /** State for the people page: the list of people and the profile of the selected person. */
 @Injectable({ providedIn: 'root' })
@@ -12,6 +13,10 @@ export class PeopleStore {
   readonly people = signal<PersonSummary[]>([]);
   readonly peopleLoading = signal(false);
   readonly peopleError = signal<string | null>(null);
+
+  /** Search text for the list. Filtering happens in the browser, over the people already loaded. */
+  readonly searchQuery = signal('');
+  readonly filteredPeople = computed(() => filterPeople(this.people(), this.searchQuery()));
 
   readonly selectedName = signal<string | null>(null);
   readonly profile = signal<AstronautProfile | null>(null);

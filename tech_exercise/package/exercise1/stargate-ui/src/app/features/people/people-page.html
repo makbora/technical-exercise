@@ -1,8 +1,12 @@
 <section class="list-pane panel" aria-labelledby="people-heading">
+  @let total = store.people().length;
+  @let shown = store.filteredPeople().length;
+  @let searching = store.searchQuery().trim() !== '';
+
   <header class="pane-header">
     <h2 id="people-heading">People</h2>
     @if (!store.peopleLoading() && !store.peopleError()) {
-      <span class="count">{{ store.people().length }}</span>
+      <span class="count">{{ searching ? shown + ' of ' + total : total }}</span>
     }
   </header>
 
@@ -10,6 +14,28 @@
     <button type="button" class="button primary add-person" (click)="openDialog('add-person')">
       <span aria-hidden="true">+</span> Add person
     </button>
+
+    <div class="search">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
+        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" />
+      </svg>
+      <input
+        #search
+        type="search"
+        aria-label="Search people"
+        aria-controls="people-list"
+        placeholder="Search by name, rank or duty"
+        autocomplete="off"
+        [value]="store.searchQuery()"
+        (input)="store.searchQuery.set(search.value)"
+      />
+    </div>
+    <p class="visually-hidden" aria-live="polite">
+      @if (searching && !store.peopleLoading()) {
+        {{ shown }} of {{ total }} people shown
+      }
+    </p>
   </div>
 
   @if (store.peopleLoading()) {
@@ -23,11 +49,17 @@
       <p>{{ error }}</p>
       <button class="button" type="button" (click)="store.loadPeople()">Try again</button>
     </div>
-  } @else if (store.people().length === 0) {
+  } @else if (total === 0) {
     <p class="state">No people have been added yet.</p>
+  } @else if (shown === 0) {
+    <div class="state">
+      <p>No people match “{{ store.searchQuery().trim() }}”.</p>
+      <button class="button" type="button" (click)="store.searchQuery.set('')">Clear search</button>
+    </div>
   } @else {
     <app-person-list
-      [people]="store.people()"
+      id="people-list"
+      [people]="store.filteredPeople()"
       [selectedName]="store.selectedName()"
       (selected)="store.select($event)"
     />

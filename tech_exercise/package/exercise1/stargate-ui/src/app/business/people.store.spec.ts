@@ -69,6 +69,27 @@ describe('PeopleStore', () => {
     store = TestBed.inject(PeopleStore);
   });
 
+  it('filters the loaded people without asking the repository again', () => {
+    store.loadPeople();
+    repository.people$.next([person('Sam Carter'), person('Jane Doe'), person('John Doe')]);
+    const callsAfterLoad = repository.getAllCalls;
+
+    store.searchQuery.set('doe');
+
+    expect(store.filteredPeople().map((p) => p.name)).toEqual(['Jane Doe', 'John Doe']);
+    expect(store.people()).toHaveLength(3);
+    expect(repository.getAllCalls).toBe(callsAfterLoad);
+  });
+
+  it('keeps the search applied when the list is refreshed', () => {
+    store.searchQuery.set('carter');
+    store.loadPeople();
+
+    repository.people$.next([person('Sam Carter'), person('Jane Doe')]);
+
+    expect(store.filteredPeople().map((p) => p.name)).toEqual(['Sam Carter']);
+  });
+
   it('loads people sorted by name', () => {
     store.loadPeople();
     expect(store.peopleLoading()).toBe(true);
