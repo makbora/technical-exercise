@@ -6,16 +6,18 @@
         }
     },
     "codeGenerators": {
-        "openApiToCSharpClient": {
+        "openApiToTypeScriptClient": {
             "template": "Angular",
             "output": "src/app/stargate-api.ts",
             "className": "{controller}Client",
             "operationGenerationMode": "MultipleClientsFromFirstTagAndOperationId",
             "httpClass": "HttpClient",
             "injectionTokenType": "InjectionToken",
-            "rxjsVersion": "7.8.0",
-            "useSingltonProvider": true,
+            "rxJsVersion": "7.0",
+            "typeScriptVerson": "5.0",
+            "useSingletonProvider": true,
             "typeStyle": "Interface",
+            "dateTimeType": "string",
             "generateClientClasses": true,
             "generateDtoTypes": true
         }
